@@ -13,3 +13,23 @@ export function omit(obj1: Record<string, any> | null, ary: Array<string>) {
   }
   return newObj;
 }
+
+export function isEmpty(obj: Record<string, any> | Array<any>) {
+  // if (typeof obj !== "object" || !Array.isArray(obj) || obj === null)
+  //   throw new Error("subject must be object or array");
+
+  if (typeof obj === "object") {
+    if (Object.keys(obj).length <= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (Array.isArray(obj)) {
+    if (Array(obj).length <= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}

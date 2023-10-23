@@ -7,7 +7,7 @@ export const CreateUserScheme = z.object({
         .string({ required_error: "name is required" })
         .min(3, "name should be at least 3 character"),
       email: z
-        .string({ required_error: "name is required" })
+        .string({ required_error: "email is required" })
         .email("invalid email"),
 
       password: z
@@ -41,6 +41,19 @@ export const CreateUserVerificationSchema = z.object({
   }),
 });
 
+export const CreateForgetPasswordSchema = z.object({
+  params: z.object({
+    id: z.string({
+      required_error: "user id is required",
+    }),
+  }),
+  body: z.object({
+    email: z
+      .string({ required_error: "email is required" })
+      .email("invalid email"),
+  }),
+});
+
 export type CreateUserInput = Omit<
   TypeOf<typeof CreateUserScheme>["body"],
   "confirm_password"
@@ -49,3 +62,7 @@ export type CreateUserInput = Omit<
 export type CreateUserVerificationInput = TypeOf<
   typeof CreateUserVerificationSchema
 >["params"];
+
+export type CreateForgetPasswordInput = TypeOf<
+  typeof CreateForgetPasswordSchema
+>;

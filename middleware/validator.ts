@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 
-import { AnyZodObject } from "zod";
+import { AnyZodObject, ZodError } from "zod";
 
 export default (schema: AnyZodObject) =>
   (req: Request, res: Response, next: NextFunction) => {
@@ -12,6 +12,6 @@ export default (schema: AnyZodObject) =>
       });
       next();
     } catch (e: any) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ error: e.errors[0].message });
     }
   };
