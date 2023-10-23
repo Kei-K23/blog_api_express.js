@@ -16,8 +16,10 @@ export interface UserDocument extends mongoose.Document {
 }
 
 interface UserModel extends mongoose.Model<UserDocument> {
-  password: string;
-  verifyPassword: (candidatePassword: string) => Promise<Boolean>;
+  verifyPassword: (
+    password: string,
+    candidatePassword: string
+  ) => Promise<Boolean>;
 }
 
 const userSchema = new mongoose.Schema<UserDocument, UserModel>(
@@ -98,14 +100,19 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.static("verifyPassword", async function (candidatePassword: string) {
-  try {
-    return await argon2.verify(this.password, candidatePassword);
-  } catch (e: any) {
-    logger.error(e.message);
-    return false;
+userSchema.static(
+  "verifyPassword",
+  async function (password: string, candidatePassword: string) {
+    const user_exist = await UserModel.findOne({ password });
+    if (!user_exist) return false;
+    try {
+      return await argon2.verify(password, candidatePassword);
+    } catch (e: any) {
+      logger.error(e.message);
+      return false;
+    }
   }
-});
+);
 
 export const UserModel = mongoose.model<UserDocument, UserModel>(
   "User",

@@ -7,13 +7,16 @@ import {
 } from "../service/user.service";
 import {
   CreateForgetPasswordInput,
+  CreateResetPasswordInputForBody,
+  CreateResetPasswordInputForParams,
   CreateUserInput,
   CreateUserVerificationInput,
 } from "../schema/user.schema";
 import { getTestMessageUrl } from "nodemailer";
 import transporter from "../utils/mailer";
 import { omit } from "../utils/utils";
-
+import { UserModel } from "../model/user.model";
+import argon2 from "argon2";
 export async function createUserHandler(
   req: Request<{}, {}, CreateUserInput>,
   res: Response
@@ -185,7 +188,8 @@ export async function forgetPasswordHandler(
         })
         .end();
 
-    const reset_password_code = crypto.randomUUID().toString();
+    const password_reset_code = crypto.randomUUID().toString();
+    await updateUser({ _id: id }, { password_reset_code });
 
     transporter.sendMail(
       {
@@ -193,7 +197,7 @@ export async function forgetPasswordHandler(
         to: user.email,
         subject: "Reset password code",
         text: `Password reset code and ID to reset your password
-    Verify Code: ${reset_password_code} | user id: ${user._id}`,
+    Verify Code: ${password_reset_code} | user id: ${user._id}`,
       },
       (error, info) => {
         if (error)
@@ -222,6 +226,88 @@ export async function forgetPasswordHandler(
           .end();
       }
     );
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({
+        status: 500,
+        error: e.message,
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      })
+      .end();
+  }
+}
+
+export async function resetPasswordHandler(
+  req: Request<
+    CreateResetPasswordInputForParams,
+    {},
+    CreateResetPasswordInputForBody
+  >,
+  res: Response
+) {
+  const { id, password_reset_code } = req.params;
+  const password = req.body.password;
+  try {
+    const user = await findUser({ _id: id });
+
+    if (!user)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user does not exist!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+
+    if (!user.verify)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user is not verify yet!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+
+    if (password_reset_code !== user.password_reset_code)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error:
+            "password reset code did not match! please use valid password reset code",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+
+    const new_hash_password = await argon2.hash(password);
+
+    await updateUser({ _id: user._id }, { password: new_hash_password });
+
+    await updateUser({ _id: user._id }, { password_reset_code: null });
+
+    return res.status(200).json({
+      status: 200,
+      message: "user password is successfully reset",
+      links: {
+        verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+        register_url: "http://localhost:8090/api/user",
+      },
+    });
   } catch (e: any) {
     return res
       .status(500)
