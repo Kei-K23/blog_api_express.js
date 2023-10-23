@@ -358,27 +358,33 @@ export async function getAuthUserHandler(req: Request, res: Response) {
     const auth_user = (await findUser({ _id: decoded.user_id })).toJSON();
 
     if (!auth_user)
-      return res.status(401).json({
-        status: 401,
-        message: "unauthorized user",
-        links: {
-          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
-          register_url: "http://localhost:8090/api/user",
-        },
-      });
+      return res
+        .status(401)
+        .json({
+          status: 401,
+          message: "unauthorized user",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
 
-    return res.status(200).json({
-      status: 200,
-      message: "authorized user",
-      data: omit(auth_user, [
-        "password",
-        "__v",
-        "suspended",
-        "verify",
-        "verify_code",
-        "password_reset_code",
-      ]),
-    });
+    return res
+      .status(200)
+      .json({
+        status: 200,
+        message: "authorized user",
+        data: omit(auth_user, [
+          "password",
+          "__v",
+          "suspended",
+          "verify",
+          "verify_code",
+          "password_reset_code",
+        ]),
+      })
+      .end();
   } catch (e: any) {
     return res
       .status(500)

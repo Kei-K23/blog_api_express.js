@@ -96,3 +96,20 @@ export async function loginHandler(
       .end();
   }
 }
+
+export async function logoutHandler(req: Request, res: Response) {
+  try {
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({
+        status: 500,
+        error: e.message,
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      })
+      .end();
+  }
+}

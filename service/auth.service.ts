@@ -1,5 +1,5 @@
-import { MongooseError } from "mongoose";
-import { SessionModel } from "../model/session.model";
+import { FilterQuery, MongooseError } from "mongoose";
+import { SessionDocument, SessionModel } from "../model/session.model";
 import { createJWT } from "../utils/jwt.utils";
 
 interface UserPayloadInput {
@@ -42,4 +42,16 @@ export async function createRefreshToken(userID: string) {
   });
 
   return access_token;
+}
+
+export async function findSession(filter: FilterQuery<SessionDocument>) {
+  try {
+    const session = await SessionModel.findOne(filter);
+
+    if (!session) throw new Error("no session data");
+    return session;
+  } catch (e: any) {
+    if (e instanceof MongooseError) throw new Error(e.message.toString());
+    throw new Error("something went wrong");
+  }
 }

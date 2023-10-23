@@ -7,6 +7,7 @@ import router from "../router";
 import config from "config";
 import cookie from "../middleware/cookie";
 import deserializedUser from "../middleware/deserializedUser";
+import refreshToken from "../middleware/refreshToken";
 dotenv.config();
 
 const dbURL = config.get<string>("DB_URL");
@@ -16,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookie);
+app.use(refreshToken);
 app.use(deserializedUser);
 app.use(router());
 app.listen(PORT, () => {

@@ -7,9 +7,12 @@ export default function (req: Request, res: Response, next: NextFunction) {
   if (!jwt_access_token) return next();
 
   const decoded = verifyJWT(jwt_access_token, "ACCESS_PUBLIC_KEY");
+
   if (!decoded) return next();
+
+  if (res.locals.user) return next();
 
   res.locals.user = decoded;
 
-  next();
+  return next();
 }
