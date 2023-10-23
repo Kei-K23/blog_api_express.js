@@ -12,7 +12,7 @@ export interface UserDocument extends mongoose.Document {
   verify_code?: string | null;
   password_reset_code?: string | null;
   suspended?: 0 | 1;
-  role?: "admin" | "user";
+  role: "admin" | "user";
 }
 
 interface UserModel extends mongoose.Model<UserDocument> {

@@ -1,8 +1,13 @@
 import { MongooseError } from "mongoose";
 import { SessionModel } from "../model/session.model";
-import { UserDocument } from "../model/user.model";
 import { createJWT } from "../utils/jwt.utils";
-import { CreateSessionInput } from "../schema/user.schema";
+
+interface UserPayloadInput {
+  user_id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export async function createSession(userID: string) {
   try {
@@ -13,7 +18,7 @@ export async function createSession(userID: string) {
   }
 }
 
-export function createAccessToken(payload: CreateSessionInput) {
+export function createAccessToken(payload: UserPayloadInput) {
   const access_token = createJWT({
     payload,
     secret: "ACCESS_PRIVATE_KEY",

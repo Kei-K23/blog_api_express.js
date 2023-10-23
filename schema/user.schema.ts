@@ -94,11 +94,6 @@ export type CreateForgetPasswordInput = TypeOf<
   typeof CreateForgetPasswordSchema
 >;
 
-export type CreateSessionInput = Omit<
-  TypeOf<typeof CreateUserScheme>["body"],
-  "password" | "confirm_password" | "suspended" | "address" | "phone"
->;
-
 export type CreateResetPasswordInputForParams = TypeOf<
   typeof CreateResetPasswordSchema
 >["params"];

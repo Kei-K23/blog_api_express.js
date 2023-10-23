@@ -56,6 +56,7 @@ export async function loginHandler(
         .end();
 
     const access_token = createAccessToken({
+      user_id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -63,13 +64,6 @@ export async function loginHandler(
 
     const refresh_token = await createRefreshToken(user._id);
 
-    res.locals.user = omit(user, [
-      "password",
-      "suspended",
-      "__v",
-      "verify_code",
-      "password_reset_code",
-    ]);
     res.cookie("blog_api_access_cookie", access_token, {
       path: "/",
       maxAge: 60000,

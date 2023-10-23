@@ -12,6 +12,7 @@ export default (schema: AnyZodObject) =>
       });
       next();
     } catch (e: any) {
-      return res.status(500).json({ error: e.errors[0].message });
+      if (e instanceof ZodError)
+        return res.status(500).json({ error: e.errors[0].message });
     }
   };

@@ -267,18 +267,18 @@ export async function resetPasswordHandler(
         })
         .end();
 
-    // if (!user.verify)
-    //   return res
-    //     .status(400)
-    //     .json({
-    //       status: 400,
-    //       error: "user is not verify yet!",
-    //       links: {
-    //         verify_url: "http://localhost:8090/api/user/:verify_code/:id",
-    //         register_url: "http://localhost:8090/api/user",
-    //       },
-    //     })
-    //     .end();
+    if (!user.verify)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user is not verify yet!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
 
     if (password_reset_code !== user.password_reset_code)
       return res
