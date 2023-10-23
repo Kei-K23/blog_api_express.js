@@ -23,8 +23,7 @@ export function verifyJWT<T>(
   try {
     const decoded = jwt.verify(token, key) as T;
     return decoded;
-  } catch (e) {
-    if (e instanceof JsonWebTokenError) throw new Error(e.message);
-    throw new Error("something went wrong when verifying JWT token");
+  } catch (e: any) {
+    return null;
   }
 }

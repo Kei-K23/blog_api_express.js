@@ -17,6 +17,7 @@ import transporter from "../utils/mailer";
 import { omit } from "../utils/utils";
 import { UserModel } from "../model/user.model";
 import argon2 from "argon2";
+import { verifyJWT } from "../utils/jwt.utils";
 export async function createUserHandler(
   req: Request<{}, {}, CreateUserInput>,
   res: Response
@@ -307,6 +308,76 @@ export async function resetPasswordHandler(
         verify_url: "http://localhost:8090/api/user/:verify_code/:id",
         register_url: "http://localhost:8090/api/user",
       },
+    });
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({
+        status: 500,
+        error: e.message,
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      })
+      .end();
+  }
+}
+
+export async function getAuthUserHandler(req: Request, res: Response) {
+  try {
+    const jwt_access_token = res.locals.cookie.blog_api_access_cookie;
+
+    if (!jwt_access_token)
+      return res.status(401).json({
+        status: 401,
+        message: "there is no JWT token to authorize",
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      });
+
+    const decoded = verifyJWT<{
+      user_id: string;
+      name: string;
+      email: string;
+      role: string;
+    }>(jwt_access_token, "ACCESS_PUBLIC_KEY");
+
+    if (!decoded)
+      return res.status(401).json({
+        status: 401,
+        message: "invalid JWT token",
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      });
+
+    const auth_user = (await findUser({ _id: decoded.user_id })).toJSON();
+
+    if (!auth_user)
+      return res.status(401).json({
+        status: 401,
+        message: "unauthorized user",
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      });
+
+    return res.status(200).json({
+      status: 200,
+      message: "authorized user",
+      data: omit(auth_user, [
+        "password",
+        "__v",
+        "suspended",
+        "verify",
+        "verify_code",
+        "password_reset_code",
+      ]),
     });
   } catch (e: any) {
     return res

@@ -16,6 +16,8 @@ const { refresh_public_key } = JSON.parse(
 
 export default {
   PORT: 8090,
+  ACCESS_TOKEN_EXPIRED: 60000, // 3.6e+6 (1h)
+  REFRESH_TOKEN_EXPIRED: 3.154e10, // 2.628e+9 (1 month) /  3.154e10(1 year)
   DB_URL: process.env.DB_URL,
   ACCESS_PRIVATE_KEY: access_private_key,
   ACCESS_PUBLIC_KEY: access_public_key,

@@ -3,8 +3,10 @@ import { CreateSessionInput } from "../schema/session.schema";
 import { findUser } from "../service/user.service";
 import { UserModel } from "../model/user.model";
 import { createAccessToken, createRefreshToken } from "../service/auth.service";
-import { omit } from "../utils/utils";
+import config from "config";
 
+const ACCESS_TOKEN_EXPIRED = config.get<number>("ACCESS_TOKEN_EXPIRED");
+const REFRESH_TOKEN_EXPIRED = config.get<number>("REFRESH_TOKEN_EXPIRED");
 export async function loginHandler(
   req: Request<{}, {}, CreateSessionInput>,
   res: Response
@@ -65,12 +67,15 @@ export async function loginHandler(
     const refresh_token = await createRefreshToken(user._id);
 
     res.cookie("blog_api_access_cookie", access_token, {
+      domain: "localhost",
       path: "/",
-      maxAge: 60000,
+      maxAge: ACCESS_TOKEN_EXPIRED,
     });
+
     res.cookie("blog_api_refresh_cookie", refresh_token, {
+      domain: "localhost",
       path: "/",
-      maxAge: 3.156e10,
+      maxAge: REFRESH_TOKEN_EXPIRED,
     });
 
     return res.status(200).json({
