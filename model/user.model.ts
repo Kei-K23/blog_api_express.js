@@ -8,9 +8,11 @@ export interface UserDocument extends mongoose.Document {
   password: string;
   phone: string;
   address: string;
+  verify: boolean;
+  verify_code?: string | null;
+  password_reset_code?: string | null;
   suspended?: 0 | 1;
   role?: "admin" | "user";
-  verifyPassword: (candidatePassword: string) => Promise<Boolean>;
 }
 
 interface UserModel extends mongoose.Model<UserDocument> {
@@ -32,9 +34,10 @@ const userSchema = new mongoose.Schema<UserDocument, UserModel>(
         {
           validator: async function (email: string) {
             const userExist = await UserModel.findOne({ email });
-            if (userExist) throw new Error("email must be unique for one user");
+            if (userExist) return false;
             return true;
           },
+          message: "user email is already exist",
         },
         {
           validator: async function (email: string) {
@@ -60,8 +63,28 @@ const userSchema = new mongoose.Schema<UserDocument, UserModel>(
         message: (prop) => `${prop.value} is not valid phone number format`,
       },
     },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verify_code: {
+      type: String,
+      default: null,
+    },
+    password_reset_code: {
+      type: String,
+      default: null,
+    },
     address: {
       type: String,
+    },
+    suspended: {
+      type: Number,
+      default: 0,
+    },
+    role: {
+      type: String,
+      default: "user",
     },
   },
   {
