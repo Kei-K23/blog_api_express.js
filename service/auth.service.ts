@@ -1,4 +1,4 @@
-import { FilterQuery, MongooseError } from "mongoose";
+import { FilterQuery, MongooseError, UpdateQuery } from "mongoose";
 import { SessionDocument, SessionModel } from "../model/session.model";
 import { createJWT } from "../utils/jwt.utils";
 
@@ -48,10 +48,24 @@ export async function findSession(filter: FilterQuery<SessionDocument>) {
   try {
     const session = await SessionModel.findOne(filter);
 
-    if (!session) throw new Error("no session data");
+    if (!session) return null;
     return session;
   } catch (e: any) {
     if (e instanceof MongooseError) throw new Error(e.message.toString());
-    throw new Error("something went wrong");
+    throw new Error(e.message);
+  }
+}
+
+export async function updateSession(
+  filter: FilterQuery<SessionDocument>,
+  update: UpdateQuery<SessionDocument>
+) {
+  try {
+    const session = await SessionModel.findOne(filter);
+    if (!session) throw new Error("no session data");
+    return await SessionModel.findOneAndUpdate(filter, update);
+  } catch (e: any) {
+    if (e instanceof MongooseError) throw new Error(e.message.toString());
+    throw new Error("something went wrong update");
   }
 }

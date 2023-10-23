@@ -15,10 +15,11 @@ import {
   CreateUserVerificationSchema,
 } from "../schema/user.schema";
 import requiredUser from "../middleware/requiredUser";
+import refreshToken from "../middleware/refreshToken";
 
 export default function (router: Router) {
   router.get("/api/user/all", getAllUserByAdminUserHandler);
-  router.get("/api/user", requiredUser, getAuthUserHandler);
+  router.get("/api/user", refreshToken, requiredUser, getAuthUserHandler);
   router.post("/api/user", validator(CreateUserScheme), createUserHandler);
   router.post(
     "/api/user/verify/:verify_code/:id",

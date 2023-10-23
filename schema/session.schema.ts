@@ -14,4 +14,15 @@ export const CreateSessionSchema = z.object({
   }),
 });
 
+export const CreateSessionLoginOutSchema = z.object({
+  params: z.object({
+    id: z.string({
+      required_error: "user id is required",
+    }),
+  }),
+});
+
 export type CreateSessionInput = TypeOf<typeof CreateSessionSchema>["body"];
+export type CreateSessionLoginOutInput = TypeOf<
+  typeof CreateSessionLoginOutSchema
+>["params"];
