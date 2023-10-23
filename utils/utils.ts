@@ -1,4 +1,4 @@
-export function omit(obj1: Record<string, any>, ary: Array<string>) {
+export function omit(obj1: Record<string, any> | null, ary: Array<string>) {
   if (typeof obj1 !== "object" || obj1 === null || Array.isArray(obj1))
     throw new Error("omit subject must be object");
 

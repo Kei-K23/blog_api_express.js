@@ -30,7 +30,22 @@ export const CreateUserScheme = z.object({
     }),
 });
 
+export const CreateUserVerificationSchema = z.object({
+  params: z.object({
+    verify_code: z.string({
+      required_error: "verify code is required",
+    }),
+    id: z.string({
+      required_error: "user id is required",
+    }),
+  }),
+});
+
 export type CreateUserInput = Omit<
   TypeOf<typeof CreateUserScheme>["body"],
   "confirm_password"
 >;
+
+export type CreateUserVerificationInput = TypeOf<
+  typeof CreateUserVerificationSchema
+>["params"];
