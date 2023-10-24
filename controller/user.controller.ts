@@ -9,13 +9,13 @@ import {
   CreateForgetPasswordInput,
   CreateResetPasswordInputForBody,
   CreateResetPasswordInputForParams,
+  CreateUpdateUserInput,
   CreateUserInput,
   CreateUserVerificationInput,
 } from "../schema/user.schema";
 import { getTestMessageUrl } from "nodemailer";
 import transporter from "../utils/mailer";
-import { omit } from "../utils/utils";
-import { UserModel } from "../model/user.model";
+import { isEmpty, omit } from "../utils/utils";
 import argon2 from "argon2";
 import { verifyJWT } from "../utils/jwt.utils";
 export async function createUserHandler(
@@ -27,6 +27,9 @@ export async function createUserHandler(
     const newUser = (await createUser(user)).toJSON();
 
     const verify_code = crypto.randomUUID().toString();
+
+    await updateUser({ _id: newUser._id }, { verify_code });
+
     transporter.sendMail(
       {
         from: "blog_api@gmail.com",
@@ -85,12 +88,51 @@ export async function userVerificationHandler(
     const { id, verify_code } = req.params;
 
     const existingUser = await findUser({ _id: id });
+
+    if (!existingUser)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user is not register yet!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+    if (existingUser._id.toString() !== id)
+      return res
+        .status(401)
+        .json({
+          status: 401,
+          error: "unauthorized! invalid user id",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+
     if (existingUser.verify === true)
       return res
         .status(400)
         .json({
           status: 400,
           error: "this account is already verify",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+
+    if (existingUser.verify_code !== verify_code)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "invalid account verification code!",
           links: {
             verify_url: "http://localhost:8090/api/user/:verify_code/:id",
             register_url: "http://localhost:8090/api/user",
@@ -268,6 +310,19 @@ export async function resetPasswordHandler(
         })
         .end();
 
+    if (user._id.toString() !== id)
+      return res
+        .status(401)
+        .json({
+          status: 401,
+          error: "unauthorized! invalid user id",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+          },
+        })
+        .end();
+
     if (!user.verify)
       return res
         .status(400)
@@ -385,6 +440,159 @@ export async function getAuthUserHandler(req: Request, res: Response) {
         ]),
       })
       .end();
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({
+        status: 500,
+        error: e.message,
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      })
+      .end();
+  }
+}
+
+export async function updateUserHandler(
+  req: Request<
+    CreateUpdateUserInput["params"],
+    {},
+    CreateUpdateUserInput["body"]
+  >,
+  res: Response
+) {
+  try {
+    const id = req.params.id;
+    const jwt_access_token = res.locals.cookie.blog_api_access_cookie;
+
+    const decoded = verifyJWT<{
+      user_id: string;
+      name: string;
+      email: string;
+      role: string;
+    }>(jwt_access_token, "ACCESS_PUBLIC_KEY");
+
+    if (!jwt_access_token)
+      return res
+        .status(401)
+        .json({
+          status: 401,
+          message: "there is no JWT token to authorize",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (!decoded)
+      return res
+        .status(403)
+        .json({
+          status: 403,
+          message: "invalid JWT access token!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    const user = await findUser({ _id: id });
+
+    if (!user)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user does not exist!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (!user.verify)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user is not verify yet!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (user._id.toString() !== decoded.user_id.toString())
+      return res
+        .status(403)
+        .json({
+          status: 403,
+          message: "unauthorized user!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (isEmpty(req.body))
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          message: "missing update filed!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    const updatedUser = await updateUser({ _id: user._id }, req.body);
+
+    if (!updatedUser)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "could not update user!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    return res.status(200).json({
+      status: 200,
+      message: "successfully updated",
+      links: {
+        verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+        register_url: "http://localhost:8090/api/user",
+        loging_url: "http://localhost:8090/api/auth/login",
+        logout_url: "http://localhost:8090/api/auth/logout/:id",
+      },
+    });
   } catch (e: any) {
     return res
       .status(500)

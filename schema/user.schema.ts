@@ -9,7 +9,6 @@ export const CreateUserScheme = z.object({
       email: z
         .string({ required_error: "email is required" })
         .email("invalid email"),
-
       password: z
         .string({
           required_error: "password is required",
@@ -81,6 +80,21 @@ export const CreateResetPasswordSchema = z.object({
     }),
 });
 
+export const CreateUpdateUserSchema = z.object({
+  body: z.object({
+    name: z.string().min(3, "name should be at least 3 character").optional(),
+    email: z.string().email("invalid email").optional(),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    role: z.string().optional(),
+  }),
+  params: z.object({
+    id: z.string({
+      required_error: "user id is required",
+    }),
+  }),
+});
+
 export type CreateUserInput = Omit<
   TypeOf<typeof CreateUserScheme>["body"],
   "confirm_password"
@@ -101,3 +115,5 @@ export type CreateResetPasswordInputForBody = Omit<
   TypeOf<typeof CreateResetPasswordSchema>["body"],
   "confirm_password"
 >;
+
+export type CreateUpdateUserInput = TypeOf<typeof CreateUpdateUserSchema>;

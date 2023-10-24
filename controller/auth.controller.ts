@@ -21,6 +21,22 @@ export async function loginHandler(
   res: Response
 ) {
   try {
+    const jwt_access_token = res.locals.cookie.blog_api_access_cookie ?? "";
+    const jwt_refresh_token = res.locals.cookie.blog_api_refresh_cookie ?? "";
+
+    if (jwt_access_token && jwt_refresh_token)
+      return res.status(400).json({
+        status: 400,
+        error:
+          "user is still login! please make sure to logout before another login",
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
+        },
+      });
+
     const { email, password } = req.body;
 
     const user = (await findUser({ email })).toJSON();
@@ -34,6 +50,8 @@ export async function loginHandler(
           links: {
             verify_url: "http://localhost:8090/api/user/:verify_code/:id",
             register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
           },
         })
         .end();
@@ -47,6 +65,8 @@ export async function loginHandler(
           links: {
             verify_url: "http://localhost:8090/api/user/:verify_code/:id",
             register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
           },
         })
         .end();
@@ -62,6 +82,8 @@ export async function loginHandler(
           links: {
             verify_url: "http://localhost:8090/api/user/:verify_code/:id",
             register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
           },
         })
         .end();
@@ -100,6 +122,8 @@ export async function loginHandler(
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
         },
       })
       .end();
@@ -122,11 +146,13 @@ export async function logoutHandler(
 
     if (!access_token_decoded)
       return res.status(401).json({
-        status: 500,
+        status: 401,
         error: "could not logout! unauthorized user",
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
         },
       });
     const refresh_token_decoded = verifyJWT<{
@@ -137,11 +163,25 @@ export async function logoutHandler(
 
     if (!refresh_token_decoded)
       return res.status(401).json({
-        status: 500,
+        status: 401,
         error: "could not logout! unauthorized user",
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
+        },
+      });
+
+    if (id !== refresh_token_decoded.user_id)
+      return res.status(401).json({
+        status: 401,
+        error: "unauthorized! you are not authorized user",
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
         },
       });
 
@@ -159,6 +199,8 @@ export async function logoutHandler(
           links: {
             verify_url: "http://localhost:8090/api/user/:verify_code/:id",
             register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
           },
         })
         .end();
@@ -180,6 +222,8 @@ export async function logoutHandler(
       links: {
         verify_url: "http://localhost:8090/api/user/:verify_code/:id",
         register_url: "http://localhost:8090/api/user",
+        loging_url: "http://localhost:8090/api/auth/login",
+        logout_url: "http://localhost:8090/api/auth/logout/:id",
       },
     });
   } catch (e: any) {
@@ -191,6 +235,8 @@ export async function logoutHandler(
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
         },
       })
       .end();

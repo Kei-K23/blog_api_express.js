@@ -23,7 +23,8 @@ export default async function (
       .status(401)
       .json({
         status: 401,
-        message: "could not refresh jwt token! missing refresh token",
+        message:
+          "could not refresh jwt token! missing refresh token. Please login again",
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
@@ -46,6 +47,8 @@ export default async function (
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
         },
       })
       .end();
@@ -65,6 +68,8 @@ export default async function (
         links: {
           verify_url: "http://localhost:8090/api/user/:verify_code/:id",
           register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
         },
       })
       .end();

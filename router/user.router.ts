@@ -5,12 +5,14 @@ import {
   getAllUserByAdminUserHandler,
   getAuthUserHandler,
   resetPasswordHandler,
+  updateUserHandler,
   userVerificationHandler,
 } from "../controller/user.controller";
 import validator from "../middleware/validator";
 import {
   CreateForgetPasswordSchema,
   CreateResetPasswordSchema,
+  CreateUpdateUserSchema,
   CreateUserScheme,
   CreateUserVerificationSchema,
 } from "../schema/user.schema";
@@ -28,12 +30,23 @@ export default function (router: Router) {
   );
   router.post(
     "/api/user/forget_password/:id",
+    refreshToken,
+    requiredUser,
     validator(CreateForgetPasswordSchema),
     forgetPasswordHandler
   );
   router.post(
     "/api/user/reset_password/:password_reset_code/:id",
+    refreshToken,
+    requiredUser,
     validator(CreateResetPasswordSchema),
     resetPasswordHandler
+  );
+  router.put(
+    "/api/user/:id/update",
+    refreshToken,
+    requiredUser,
+    validator(CreateUpdateUserSchema),
+    updateUserHandler
   );
 }
