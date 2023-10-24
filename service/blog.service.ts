@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import { BlogModel } from "../model/blog.model";
-import { CreateBlogInput } from "../schema/blog.schema";
+import { CreateBlogInput, CreateBlogInputProp } from "../schema/blog.schema";
 import { isEmpty } from "../utils/utils";
 
-export async function createBlog(payload: CreateBlogInput) {
+export async function createBlog(payload: CreateBlogInputProp) {
   try {
     return await BlogModel.create(payload);
   } catch (e: any) {
