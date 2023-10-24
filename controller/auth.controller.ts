@@ -16,6 +16,7 @@ import { verifyJWT } from "../utils/jwt.utils";
 
 const ACCESS_TOKEN_EXPIRED = config.get<number>("ACCESS_TOKEN_EXPIRED");
 const REFRESH_TOKEN_EXPIRED = config.get<number>("REFRESH_TOKEN_EXPIRED");
+
 export async function loginHandler(
   req: Request<{}, {}, CreateSessionInput>,
   res: Response
@@ -39,7 +40,7 @@ export async function loginHandler(
 
     const { email, password } = req.body;
 
-    const user = (await findUser({ email })).toJSON();
+    const user = await findUser({ email });
 
     if (!user)
       return res
@@ -215,6 +216,9 @@ export async function logoutHandler(
       domain: "localhost",
       path: "/",
     });
+
+    res.locals.user = {};
+    res.locals.cookie = {};
 
     return res.status(200).json({
       status: 200,

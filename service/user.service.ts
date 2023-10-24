@@ -27,11 +27,11 @@ export async function getAllUser() {
 export async function findUser(filter: FilterQuery<UserDocument>) {
   try {
     const user = await UserModel.findOne(filter);
-    if (!user) throw new Error("user is not exist! register first");
+    if (!user) return null;
     return user;
   } catch (e: any) {
     if (e instanceof MongooseError) throw new Error(e.message.toString());
-    throw new Error("something went wrong");
+    throw new Error("something went wrong find");
   }
 }
 
@@ -41,9 +41,20 @@ export async function updateUser(
 ) {
   try {
     const isUserExist = await UserModel.findOne(filter);
-    if (!isUserExist)
-      throw new Error("user does not exist! cannot verify account");
+    if (!isUserExist) throw new Error("user does not exist!");
     return await UserModel.findOneAndUpdate(filter, update).lean();
+  } catch (e: any) {
+    if (e instanceof MongooseError) throw new Error(e.message.toString());
+    throw new Error("something went wrong");
+  }
+}
+
+export async function deleteUser(filter: FilterQuery<UserDocument>) {
+  try {
+    const isUserExist = await UserModel.findOne(filter);
+    if (!isUserExist)
+      throw new Error("user does not exist! cannot delete user");
+    await UserModel.findOneAndDelete(filter);
   } catch (e: any) {
     if (e instanceof MongooseError) throw new Error(e.message.toString());
     throw new Error("something went wrong");

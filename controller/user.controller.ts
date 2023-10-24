@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import {
   createUser,
+  deleteUser,
   findUser,
   getAllUser,
   updateUser,
 } from "../service/user.service";
 import {
+  CreateDeleteUserInput,
   CreateForgetPasswordInput,
   CreateResetPasswordInputForBody,
   CreateResetPasswordInputForParams,
@@ -410,7 +412,7 @@ export async function getAuthUserHandler(req: Request, res: Response) {
         },
       });
 
-    const auth_user = (await findUser({ _id: decoded.user_id })).toJSON();
+    const auth_user = await findUser({ _id: decoded.user_id });
 
     if (!auth_user)
       return res
@@ -430,7 +432,7 @@ export async function getAuthUserHandler(req: Request, res: Response) {
       .json({
         status: 200,
         message: "authorized user",
-        data: omit(auth_user, [
+        data: omit(auth_user.toJSON(), [
           "password",
           "__v",
           "suspended",
@@ -586,6 +588,139 @@ export async function updateUserHandler(
     return res.status(200).json({
       status: 200,
       message: "successfully updated",
+      links: {
+        verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+        register_url: "http://localhost:8090/api/user",
+        loging_url: "http://localhost:8090/api/auth/login",
+        logout_url: "http://localhost:8090/api/auth/logout/:id",
+      },
+    });
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({
+        status: 500,
+        error: e.message,
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+        },
+      })
+      .end();
+  }
+}
+
+export async function deleteUserHandler(
+  req: Request<CreateDeleteUserInput>,
+  res: Response
+) {
+  try {
+    const id = req.params.id;
+    const jwt_access_token = res.locals.cookie.blog_api_access_cookie;
+
+    const decoded = verifyJWT<{
+      user_id: string;
+      name: string;
+      email: string;
+      role: string;
+    }>(jwt_access_token, "ACCESS_PUBLIC_KEY");
+
+    if (!jwt_access_token)
+      return res
+        .status(401)
+        .json({
+          status: 401,
+          message: "there is no JWT token to authorize",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (!decoded)
+      return res
+        .status(403)
+        .json({
+          status: 403,
+          message: "invalid JWT access token!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    const user = await findUser({ _id: id });
+
+    if (!user)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user does not exist!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (!user.verify)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user is not verify yet!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (user._id.toString() !== decoded.user_id.toString())
+      return res
+        .status(403)
+        .json({
+          status: 403,
+          message: "unauthorized user!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    await deleteUser({ _id: user._id });
+
+    // clear cookie session
+    res.clearCookie("blog_api_access_cookie", {
+      domain: "localhost",
+      path: "/",
+    });
+    res.clearCookie("blog_api_refresh_cookie", {
+      domain: "localhost",
+      path: "/",
+    });
+
+    // clear cookie hader
+    res.locals.user = {};
+    res.locals.cookie = {};
+
+    return res.status(200).json({
+      status: 200,
+      message: "successfully deleted user account",
       links: {
         verify_url: "http://localhost:8090/api/user/:verify_code/:id",
         register_url: "http://localhost:8090/api/user",

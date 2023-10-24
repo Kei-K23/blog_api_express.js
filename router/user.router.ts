@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createUserHandler,
+  deleteUserHandler,
   forgetPasswordHandler,
   getAllUserByAdminUserHandler,
   getAuthUserHandler,
@@ -10,6 +11,7 @@ import {
 } from "../controller/user.controller";
 import validator from "../middleware/validator";
 import {
+  CreateDeleteUserSchema,
   CreateForgetPasswordSchema,
   CreateResetPasswordSchema,
   CreateUpdateUserSchema,
@@ -43,10 +45,17 @@ export default function (router: Router) {
     resetPasswordHandler
   );
   router.put(
-    "/api/user/:id/update",
+    "/api/user/:id",
     refreshToken,
     requiredUser,
     validator(CreateUpdateUserSchema),
     updateUserHandler
+  );
+  router.delete(
+    "/api/user/:id",
+    refreshToken,
+    requiredUser,
+    validator(CreateDeleteUserSchema),
+    deleteUserHandler
   );
 }

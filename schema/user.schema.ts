@@ -94,6 +94,13 @@ export const CreateUpdateUserSchema = z.object({
     }),
   }),
 });
+export const CreateDeleteUserSchema = z.object({
+  params: z.object({
+    id: z.string({
+      required_error: "user id is required",
+    }),
+  }),
+});
 
 export type CreateUserInput = Omit<
   TypeOf<typeof CreateUserScheme>["body"],
@@ -117,3 +124,7 @@ export type CreateResetPasswordInputForBody = Omit<
 >;
 
 export type CreateUpdateUserInput = TypeOf<typeof CreateUpdateUserSchema>;
+
+export type CreateDeleteUserInput = TypeOf<
+  typeof CreateDeleteUserSchema
+>["params"];
