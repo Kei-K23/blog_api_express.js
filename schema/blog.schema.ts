@@ -93,18 +93,3 @@ export type CreateBlogAndUpdateProp = {
 export type CreateBlogInput = TypeOf<typeof CreateBlogSchema>;
 export type CreateUpdateBlogInput = TypeOf<typeof CreateUpdateBlogSchema>;
 export type CreateDeleteBlogInput = TypeOf<typeof CreateDeleteBlogSchema>;
-// comment schema
-//  comments: z
-//       .array(
-//         z.object({
-//           user_id: z.string({
-//             required_error: "user id is required!",
-//           }),
-//           comment: z
-//             .string({
-//               required_error: "comment is requried!",
-//             })
-//             .min(5, "comment length should be at least 5 characters"),
-//         })
-//       )
-//       .optional(),
