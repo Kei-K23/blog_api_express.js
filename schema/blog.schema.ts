@@ -65,10 +65,13 @@ export const CreateUpdateBlogSchema = z.object({
     user_id: z.string({
       required_error: "user id is required!",
     }),
+    blog_id: z.string({
+      required_error: "user id is required!",
+    }),
   }),
 });
 
-export type CreateBlogInputProp = {
+export type CreateBlogAndUpdateProp = {
   body: string;
   title: string;
   topic: string;
@@ -77,7 +80,7 @@ export type CreateBlogInputProp = {
 };
 
 export type CreateBlogInput = TypeOf<typeof CreateBlogSchema>;
-
+export type CreateUpdateBlogInput = TypeOf<typeof CreateUpdateBlogSchema>;
 // comment schema
 //  comments: z
 //       .array(

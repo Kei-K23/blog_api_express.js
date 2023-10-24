@@ -7,7 +7,7 @@ type CommentType = {
 
 export interface BlogDocument extends mongoose.Document {
   title: string;
-  sub_title?: string;
+  sub_title?: string | undefined;
   topic:
     | "programming"
     | "computer science"

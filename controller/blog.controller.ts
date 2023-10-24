@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import { findUser } from "../service/user.service";
 import { verifyJWT } from "../utils/jwt.utils";
-import { CreateBlogInput } from "../schema/blog.schema";
-import { createBlog, getAllBlogs } from "../service/blog.service";
-import { isEmpty } from "../utils/utils";
+import { CreateBlogInput, CreateUpdateBlogInput } from "../schema/blog.schema";
+import {
+  createBlog,
+  findBlog,
+  getAllBlogs,
+  updateBlog,
+} from "../service/blog.service";
+import { isEmpty, omit } from "../utils/utils";
 
 export async function getAllBlogsHandler(req: Request, res: Response) {
   try {
@@ -197,11 +202,15 @@ export async function createBlogHandler(
 }
 
 export async function updateBlogHandler(
-  req: Request<CreateBlogInput["params"], {}, CreateBlogInput["body"]>,
+  req: Request<
+    CreateUpdateBlogInput["params"],
+    {},
+    CreateUpdateBlogInput["body"]
+  >,
   res: Response
 ) {
   try {
-    const user_id = req.params.user_id;
+    const { user_id, blog_id } = req.params;
     const jwt_access_token = res.locals.cookie.blog_api_access_cookie;
 
     const decoded = verifyJWT<{
@@ -288,13 +297,36 @@ export async function updateBlogHandler(
         })
         .end();
 
-    const blog = await createBlog({ ...req.body, user_id });
+    if (isEmpty(req.body))
+      return res
+        .status(400)
+        .json({ status: 400, error: "missing request body to update" })
+        .end();
 
-    return res.status(201).json({
-      status: 201,
-      message: "successfully created new blog",
-      data: blog,
+    const valid_blog_to_update = await findBlog({
+      _id: blog_id,
+      user_id,
     });
+
+    if (!valid_blog_to_update)
+      return res
+        .status(403)
+        .json({ status: 403, error: "cound not update blog! unauthorized" })
+        .end();
+
+    const updatedBlog = await updateBlog(
+      { _id: valid_blog_to_update._id },
+      req.body
+    );
+
+    return res
+      .status(200)
+      .json({
+        status: 200,
+        message: "successfully update the blog",
+        data: updatedBlog,
+      })
+      .end();
   } catch (e: any) {
     return res
       .status(500)
