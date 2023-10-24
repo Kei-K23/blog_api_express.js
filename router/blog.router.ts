@@ -2,11 +2,13 @@ import { Router } from "express";
 import validator from "../middleware/validator";
 import {
   CreateBlogSchema,
+  CreateDeleteBlogSchema,
   CreateUpdateBlogSchema,
 } from "../schema/blog.schema";
 
 import {
   createBlogHandler,
+  deleteBlogHandler,
   getAllBlogsHandler,
   updateBlogHandler,
 } from "../controller/blog.controller";
@@ -22,11 +24,18 @@ export default function (router: Router) {
     validator(CreateBlogSchema),
     createBlogHandler
   );
-  router.post(
+  router.put(
     "/api/blogs/:blog_id/:user_id",
     refreshToken,
     requiredUser,
     validator(CreateUpdateBlogSchema),
     updateBlogHandler
+  );
+  router.delete(
+    "/api/blogs/:blog_id/:user_id",
+    refreshToken,
+    requiredUser,
+    validator(CreateDeleteBlogSchema),
+    deleteBlogHandler
   );
 }

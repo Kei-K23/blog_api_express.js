@@ -66,7 +66,18 @@ export const CreateUpdateBlogSchema = z.object({
       required_error: "user id is required!",
     }),
     blog_id: z.string({
+      required_error: "blog id is required!",
+    }),
+  }),
+});
+
+export const CreateDeleteBlogSchema = z.object({
+  params: z.object({
+    user_id: z.string({
       required_error: "user id is required!",
+    }),
+    blog_id: z.string({
+      required_error: "blog id is required!",
     }),
   }),
 });
@@ -81,6 +92,7 @@ export type CreateBlogAndUpdateProp = {
 
 export type CreateBlogInput = TypeOf<typeof CreateBlogSchema>;
 export type CreateUpdateBlogInput = TypeOf<typeof CreateUpdateBlogSchema>;
+export type CreateDeleteBlogInput = TypeOf<typeof CreateDeleteBlogSchema>;
 // comment schema
 //  comments: z
 //       .array(

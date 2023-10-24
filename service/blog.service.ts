@@ -51,3 +51,15 @@ export async function findBlog(filter: FilterQuery<BlogDocument>) {
     throw new Error(e.message.toString());
   }
 }
+
+export async function deleteBlog(filter: FilterQuery<BlogDocument>) {
+  try {
+    const blog = await BlogModel.findOne(filter);
+    if (!blog) throw new Error("there is no blog to provide");
+    await BlogModel.findOneAndDelete(filter);
+  } catch (e: any) {
+    if (e instanceof mongoose.MongooseError)
+      throw new Error(e.message.toString());
+    throw new Error(e.message.toString());
+  }
+}

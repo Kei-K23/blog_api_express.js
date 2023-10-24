@@ -4,6 +4,7 @@ import { verifyJWT } from "../utils/jwt.utils";
 import { CreateBlogInput, CreateUpdateBlogInput } from "../schema/blog.schema";
 import {
   createBlog,
+  deleteBlog,
   findBlog,
   getAllBlogs,
   updateBlog,
@@ -325,6 +326,132 @@ export async function updateBlogHandler(
         status: 200,
         message: "successfully update the blog",
         data: updatedBlog,
+      })
+      .end();
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({
+        status: 500,
+        error: e.message,
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
+        },
+      })
+      .end();
+  }
+}
+
+export async function deleteBlogHandler(req: Request, res: Response) {
+  try {
+    const { user_id, blog_id } = req.params;
+    const jwt_access_token = res.locals.cookie.blog_api_access_cookie;
+
+    const decoded = verifyJWT<{
+      user_id: string;
+      name: string;
+      email: string;
+      role: string;
+    }>(jwt_access_token, "ACCESS_PUBLIC_KEY");
+
+    if (!jwt_access_token)
+      return res
+        .status(401)
+        .json({
+          status: 401,
+          message: "there is no JWT token to authorize",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (!decoded)
+      return res
+        .status(403)
+        .json({
+          status: 403,
+          message: "invalid JWT access token!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    const user = await findUser({ _id: user_id });
+
+    if (!user)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user does not exist!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (!user.verify)
+      return res
+        .status(400)
+        .json({
+          status: 400,
+          error: "user is not verify yet!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    if (user._id.toString() !== decoded.user_id.toString())
+      return res
+        .status(403)
+        .json({
+          status: 403,
+          message: "unauthorized user!",
+          links: {
+            verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+            register_url: "http://localhost:8090/api/user",
+            loging_url: "http://localhost:8090/api/auth/login",
+            logout_url: "http://localhost:8090/api/auth/logout/:id",
+          },
+        })
+        .end();
+
+    const valid_blog_to_delete = await findBlog({
+      _id: blog_id,
+      user_id,
+    });
+
+    if (!valid_blog_to_delete)
+      return res
+        .status(403)
+        .json({ status: 403, error: "cound not update blog! unauthorized" })
+        .end();
+
+    const updatedBlog = await deleteBlog({ _id: valid_blog_to_delete._id });
+
+    return res
+      .status(200)
+      .json({
+        status: 200,
+        message: "successfully delete the blog",
       })
       .end();
   } catch (e: any) {
