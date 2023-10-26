@@ -74,7 +74,22 @@ export default async function (
       })
       .end();
 
-  const user = (await findUser({ _id: session.user_id })).toJSON();
+  const user = await findUser({ _id: session.user_id });
+
+  if (!user)
+    return res
+      .status(401)
+      .json({
+        status: 401,
+        message: "could not refresh jwt token!",
+        links: {
+          verify_url: "http://localhost:8090/api/user/:verify_code/:id",
+          register_url: "http://localhost:8090/api/user",
+          loging_url: "http://localhost:8090/api/auth/login",
+          logout_url: "http://localhost:8090/api/auth/logout/:id",
+        },
+      })
+      .end();
 
   const new_jwt_access_token = createAccessToken({
     name: user.name,
